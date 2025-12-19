@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TripoliChase – Registration</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background:#f9f9f9; color:#333; margin:0; line-height: 1.6; }
+        header { padding:60px 20px; text-align:center; background: #000; color: #fff; }
+        header h1 { font-size:2.8em; margin:0; letter-spacing: 2px; }
+        header p { max-width:700px; margin:20px auto 0; font-size:1.1em; opacity: 0.9; }
+        main { max-width:600px; margin:40px auto; padding:30px; background: #fff; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        section { display:none; }
+        section.active { display:block; }
+        h2 { border-bottom:2px solid #eee; padding-bottom:10px; margin-top: 0; color: #000; }
+        label { display:block; margin-top:20px; font-weight:bold; font-size: 0.9em; }
+        input, textarea { width:100%; padding:12px; font-size:1em; margin-top:6px; border:1px solid #ddd; border-radius:6px; box-sizing: border-box; }
+        input:focus { border-color: #000; outline: none; }
+        .buttons { margin-top:30px; display:flex; justify-content:space-between; }
+        button { padding:14px 28px; border:none; font-size:1em; cursor:pointer; border-radius: 6px; transition: 0.2s; }
+        .next { background:#000; color:#fff; width: 100%; }
+        .prev { background:#eee; color: #333; margin-right: 10px; }
+        .checkbox-container { display: flex; align-items: flex-start; margin-top: 20px; }
+        .checkbox-container input { width: auto; margin-right: 10px; margin-top: 5px; }
+        .payment-info { background: #f0f7ff; padding: 20px; border-radius: 8px; border-left: 4px solid #007bff; }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>TRIPOLI CHASE</h1>
+    <p>Race across Tripoli in teams of 5. Solve clues, find checkpoint X, and win $250.</p>
+</header>
+
+<main>
+    <form id="form">
+        <section class="active">
+            <h2>Start Your Journey</h2>
+            <label>Team Name *</label>
+            <input name="teamName" placeholder="Enter team name" required>
+            <div class="buttons">
+                <button type="button" class="next">Begin Registration</button>
+            </div>
+        </section>
+
+        <div id="player-sections"></div>
+
+        <section>
+            <h2>Final Details</h2>
+            <label>Ask us a question (optional)</label>
+            <textarea name="question" placeholder="Anything else we should know?"></textarea>
+            <div class="buttons">
+                <button type="button" class="prev">Previous</button>
+                <button type="button" class="next">Next</button>
+            </div>
+        </section>
+
+        <section>
+            <h2>Payment & Confirmation</h2>
+            <div class="payment-info">
+                <strong>Whish Money Details:</strong><br>
+                Amount: $75 per team ($15/person)<br>
+                Number: 30740769-03<br>
+                Phone: +961 76 454 403<br>
+                Name: Jude El Hallab
+            </div>
+            <div class="checkbox-container">
+                <input type="checkbox" id="confirm" required>
+                <label for="confirm" style="margin-top:0">I understand registration is only confirmed after payment via Whish.</label>
+            </div>
+            <div class="buttons">
+                <button type="button" class="prev">Previous</button>
+                <button type="submit" class="next" id="submitBtn">Submit Registration</button>
+            </div>
+        </section>
+    </form>
+</main>
+
+<script>
+    // Generate Player Sections Dynamically
+    const playerContainer = document.getElementById('player-sections');
+    for(let i=1; i<=5; i++) {
+        playerContainer.innerHTML += `
+            <section>
+                <h2>Player ${i} ${i===1 ? '(Captain)' : ''}</h2>
+                <label>Full Name *</label>
+                <input name="p${i}Name" required>
+                <label>Phone (+961) *</label>
+                <input name="p${i}Phone" required pattern=".{8,}" placeholder="76 123 456">
+                <label>Email *</label>
+                <input type="email" name="p${i}Email" required>
+                <label>Age *</label>
+                <input type="number" name="p${i}Age" required min="5" max="90">
+                <div class="buttons">
+                    <button type="button" class="prev">Previous</button>
+                    <button type="button" class="next">Next</button>
+                </div>
+            </section>
+        `;
+    }
+
+    // Navigation Logic
+    let current = 0;
+    const form = document.getElementById("form");
+    
+    document.addEventListener("click", e => {
+        const sections = [...document.querySelectorAll("section")];
+        if(e.target.classList.contains("next")) {
+            const inputs = sections[current].querySelectorAll("input, textarea");
+            const isValid = [...inputs].every(input => input.reportValidity());
+            if(isValid) {
+                current++;
+                updateVisibility();
+            }
+        }
+        if(e.target.classList.contains("prev")) {
+            current--;
+            updateVisibility();
+        }
+    });
+
+    function updateVisibility() {
+        const sections = [...document.querySelectorAll("section")];
+        sections.forEach((s, i) => s.classList.toggle("active", i === current));
+        window.scrollTo(0,0);
+    }
+
+    // Submit Logic
+    form.addEventListener("submit", e => {
+        e.preventDefault();
+        const btn = document.getElementById("submitBtn");
+        btn.innerText = "Sending...";
+        btn.disabled = true;
+
+        fetch("https://script.google.com/macros/s/AKfycbzW2ub4L6WQliEN5VP4AREVfdGchzk9JpR6uO4xLZ_JElVfMDZN_FUnA5OFhnYzLH4vew/exec", {
+            method: "POST",
+            body: new FormData(form)
+        })
+        .then(r => r.text())
+        .then(data => {
+            alert("Success! We will contact you on WhatsApp once payment is verified.");
+            form.reset();
+            current = 0;
+            updateVisibility();
+        })
+        .catch(err => {
+            alert("Error submitting form. Please check your connection.");
+            console.error(err);
+        })
+        .finally(() => {
+            btn.innerText = "Submit Registration";
+            btn.disabled = false;
+        });
+    });
+</script>
+</body>
+</html>
